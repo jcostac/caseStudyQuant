@@ -6,7 +6,6 @@ from pathlib import Path
 # Add parent directory to path to import config
 sys.path.append(str(Path(__file__).parent.parent))
 from config import PATHS
-from graficas.generador_graficas import graph_optimization_results
 
 class BatteryOptimizer:
     def __init__(self, charge_rate, energy_capacity, initial_storage = 0, efficiency=0.9):
@@ -203,6 +202,3 @@ if __name__ == "__main__":
     
     # Save results
     revenue_df.to_csv(PATHS['optimization']['results'])
-    
-    # Generate graphs
-    graph_optimization_results(revenue_df)
