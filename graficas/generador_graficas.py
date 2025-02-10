@@ -4,6 +4,7 @@ import matplotlib.dates as mdates
 from datetime import datetime
 import sys
 from pathlib import Path
+import math
 
 # Add parent directory to path to import config
 sys.path.append(str(Path(__file__).parent.parent))
@@ -161,6 +162,14 @@ def graph_optimization_results(results_df: pd.DataFrame) -> None:
     fig.suptitle('Beneficio por MWh de Energía de la Batería por mes (2020 - 2025)', 
                 y=1.02, fontsize=16, fontweight='bold')
     
+    # Calculate global y-axis limits for MWh profits
+    all_monthly_mwh = []
+    for year in years:
+        year_data = results_df[results_df.index.year == year]
+        monthly_data = year_data.groupby(year_data.index.month)['profit_per_mwh'].sum()
+        all_monthly_mwh.extend(monthly_data.values)
+    y_min_mwh = min(all_monthly_mwh)
+    y_max_mwh = max(all_monthly_mwh)
     
     for idx, year in enumerate(years):
         row = idx // n_cols
@@ -177,6 +186,8 @@ def graph_optimization_results(results_df: pd.DataFrame) -> None:
         axs[row, col].tick_params(axis='both', labelsize=8)
         axs[row, col].set_xticks(range(1, 13))
         axs[row, col].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: format(int(x), ',')))
+        # Set consistent y-axis limits
+        axs[row, col].set_ylim(y_min_mwh * 1.1, y_max_mwh * 1.1)
     
     for idx in range(len(years), n_rows * n_cols):
         row = idx // n_cols
@@ -199,6 +210,12 @@ def graph_optimization_results(results_df: pd.DataFrame) -> None:
     fig.suptitle('Beneficio por MW de Potencia de la Batería por mes (2020 - 2025)', 
                 y=1.02, fontsize=16, fontweight='bold')
     
+    # Calculate global y-axis limits for MW plot - using monthly data
+    monthly_mw = results_df.groupby([results_df.index.year, results_df.index.month])['profit_per_mw'].sum()
+    mw_min = monthly_mw.min()
+    mw_max = monthly_mw.max()
+    mw_ylim = (mw_min, mw_max)
+    
     for idx, year in enumerate(years):
         row = idx // n_cols
         col = idx % n_cols
@@ -214,6 +231,7 @@ def graph_optimization_results(results_df: pd.DataFrame) -> None:
         axs[row, col].tick_params(axis='both', labelsize=8)
         axs[row, col].set_xticks(range(1, 13))
         axs[row, col].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: format(int(x), ',')))
+        axs[row, col].set_ylim(mw_ylim)
     
     for idx in range(len(years), n_rows * n_cols):
         row = idx // n_cols
